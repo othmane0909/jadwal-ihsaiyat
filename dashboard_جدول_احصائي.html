@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الإحصائيات – الجدول الجامعي</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
+  :root {
+    --bg:#f0f2f7;--card:#fff;--border:#e2e6ef;--text:#1a1f36;--muted:#6b7280;
+    --accent:#2563eb;--accent-light:#eff6ff;
+    --green:#16a34a;--green-light:#f0fdf4;
+    --red:#dc2626;--red-light:#fef2f2;
+    --yellow:#d97706;--yellow-light:#fffbeb;
+    --purple:#7c3aed;--purple-light:#f5f3ff;
+    --teal:#0891b2;--teal-light:#ecfeff;
+    --radius:12px;--shadow:0 1px 4px rgba(0,0,0,.07),0 4px 16px rgba(0,0,0,.04);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+  /* Header */
+  .header{background:var(--accent);color:#fff;padding:18px 28px;display:flex;align-items:center;
+    justify-content:space-between;flex-wrap:wrap;gap:12px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .header-title{font-size:20px;font-weight:700;}
+  .header-sub{font-size:13px;opacity:.8;margin-top:2px;}
+  .header-actions{display:flex;gap:8px;}
+  .btn{padding:8px 16px;border-radius:8px;font-family:'Cairo',sans-serif;font-size:13px;
+    font-weight:600;cursor:pointer;border:none;transition:all .15s;}
+  .btn-white{background:#fff;color:var(--accent);}
+  .btn-white:hover{background:#e8f0fe;}
+  .btn-outline{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.5);}
+  .btn-outline:hover{background:rgba(255,255,255,.1);}
+
+  /* Setup */
+  #setup-panel{max-width:580px;margin:48px auto;padding:32px;background:var(--card);
+    border-radius:var(--radius);box-shadow:var(--shadow);}
+  #setup-panel h2{font-size:18px;font-weight:700;margin-bottom:6px;}
+  #setup-panel p{color:var(--muted);font-size:13px;margin-bottom:20px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:5px;}
+  .field input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;
+    font-family:'Cairo',sans-serif;font-size:13px;outline:none;transition:border-color .15s;}
+  .field input:focus{border-color:var(--accent);}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px;}
+  .btn-primary{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;
+    border-radius:8px;font-family:'Cairo',sans-serif;font-size:15px;font-weight:700;cursor:pointer;}
+  .btn-primary:hover{background:#1d4ed8;}
+  #load-error{color:var(--red);font-size:13px;margin-top:10px;display:none;}
+
+  /* Loading */
+  #loading{display:none;text-align:center;padding:80px 20px;}
+  .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);
+    border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* Dashboard */
+  #dashboard{display:none;padding:24px 28px;}
+
+  /* Filters */
+  .filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--card);
+    padding:14px 18px;border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px;}
+  .filters select{padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;
+    font-family:'Cairo',sans-serif;font-size:13px;background:#fff;outline:none;cursor:pointer;min-width:150px;}
+  .filters label{font-size:13px;font-weight:600;color:var(--muted);}
+
+  /* Tabs */
+  .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);padding:5px;
+    border-radius:var(--radius);box-shadow:var(--shadow);width:fit-content;}
+  .tab-btn{padding:9px 18px;border-radius:8px;border:none;background:transparent;
+    font-family:'Cairo',sans-serif;font-size:13px;font-weight:600;cursor:pointer;
+    color:var(--muted);transition:all .15s;}
+  .tab-btn.active{background:var(--accent);color:#fff;}
+  .tab-btn:not(.active):hover{background:var(--bg);}
+
+  /* KPI */
+  .kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px;margin-bottom:24px;}
+  .kpi{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:18px;position:relative;overflow:hidden;}
+  .kpi-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;
+    justify-content:center;font-size:18px;margin-bottom:10px;}
+  .kpi-val{font-size:26px;font-weight:700;line-height:1;}
+  .kpi-lbl{font-size:12px;color:var(--muted);margin-top:4px;}
+  .kpi-accent{position:absolute;top:0;left:0;width:4px;height:100%;border-radius:2px 0 0 2px;}
+
+  /* Cards */
+  .section-card{background:var(--card);border-radius:var(--radius);
+    box-shadow:var(--shadow);margin-bottom:20px;overflow:hidden;}
+  .section-head{padding:14px 18px;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:space-between;}
+  .section-head h3{font-size:15px;font-weight:700;}
+  .section-badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:600;}
+
+  /* Table */
+  .tbl-wrap{overflow-x:auto;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{background:var(--bg);padding:9px 13px;text-align:right;font-weight:700;font-size:12px;
+    color:var(--muted);border-bottom:2px solid var(--border);white-space:nowrap;}
+  td{padding:9px 13px;border-bottom:1px solid var(--border);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:#f8faff;}
+
+  /* Badges */
+  .badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;
+    font-size:12px;font-weight:600;white-space:nowrap;}
+  .badge-ok{background:var(--green-light);color:var(--green);}
+  .badge-warn{background:var(--yellow-light);color:var(--yellow);}
+  .badge-err{background:var(--red-light);color:var(--red);}
+  .badge-info{background:var(--accent-light);color:var(--accent);}
+  .badge-extra{background:var(--purple-light);color:var(--purple);}
+  .badge-temp{background:var(--teal-light);color:var(--teal);}
+
+  /* Progress */
+  .prog-wrap{display:flex;align-items:center;gap:8px;}
+  .prog{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;min-width:60px;}
+  .prog-fill{height:100%;border-radius:3px;}
+  .prog-lbl{font-size:12px;font-weight:600;min-width:36px;text-align:left;}
+
+  /* Print modal */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;
+    align-items:center;justify-content:center;}
+  .modal-overlay.open{display:flex;}
+  .modal{background:var(--card);border-radius:var(--radius);padding:28px;max-width:420px;width:90%;}
+  .modal h3{font-size:16px;font-weight:700;margin-bottom:14px;}
+  .modal-opts{display:flex;flex-direction:column;gap:10px;margin-bottom:20px;}
+  .modal-opt{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1.5px solid var(--border);
+    border-radius:8px;cursor:pointer;transition:border-color .15s;font-size:14px;font-weight:500;}
+  .modal-opt:hover{border-color:var(--accent);}
+  .modal-opt input{accent-color:var(--accent);}
+  .modal-footer{display:flex;gap:10px;justify-content:flex-end;}
+  .btn-cancel{background:var(--bg);color:var(--text);}
+
+  .tab-pane{display:none;}
+  .tab-pane.active{display:block;}
+  .empty{text-align:center;padding:36px;color:var(--muted);font-size:13px;}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+  @media(max-width:700px){.two-col{grid-template-columns:1fr;}}
+
+  /* Print */
+  @media print{
+    .header-actions,.filters,.tabs,.modal-overlay,#setup-panel,#loading{display:none!important;}
+    body{background:#fff;}
+    #dashboard{padding:0;display:block!important;}
+    .section-card{box-shadow:none;border:1px solid #ddd;break-inside:avoid;}
+    .tab-pane{display:block!important;}
+    .kpi-grid{break-inside:avoid;}
+    .print-hide{display:none!important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">📊 لوحة الإحصائيات – الجدول الجامعي</div>
+    <div class="header-sub" id="last-update">لم يتم تحميل البيانات بعد</div>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-outline" onclick="showSetup()">⚙️ تغيير الملف</button>
+    <button class="btn btn-white" onclick="openPrintModal()">🖨️ طباعة / PDF</button>
+  </div>
+</div>
+
+<!-- Print Modal -->
+<div class="modal-overlay" id="print-modal">
+  <div class="modal">
+    <h3>اختر ما تريد طباعته</h3>
+    <div class="modal-opts">
+      <label class="modal-opt"><input type="checkbox" id="pr-teachers" checked> 👨‍🏫 تقرير الأساتذة</label>
+      <label class="modal-opt"><input type="checkbox" id="pr-rooms" checked> 🏫 تقرير القاعات</label>
+      <label class="modal-opt"><input type="checkbox" id="pr-courses" checked> 📚 تقرير المقررات</label>
+      <label class="modal-opt"><input type="checkbox" id="pr-overview" checked> 📈 النظرة الكلية</label>
+      <label class="modal-opt"><input type="checkbox" id="pr-conflicts" checked> ⚠️ التعارضات</label>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-cancel" onclick="closePrintModal()">إلغاء</button>
+      <button class="btn btn-white" style="background:var(--accent);color:#fff;" onclick="doPrint()">طباعة</button>
+    </div>
+  </div>
+</div>
+
+<!-- Setup -->
+<div id="setup-panel">
+  <h2>📊 لوحة الإحصائيات – الجدول الجامعي</h2>
+  <p>اضغط على الزر أدناه لتحميل البيانات مباشرة من ملف Google Sheets.</p>
+  <button class="btn-primary" onclick="loadData()">🔄 تحميل البيانات</button>
+  <div id="load-error"></div>
+  <hr style="margin:22px 0;border:none;border-top:1px solid var(--border);">
+  <p style="font-size:12px;color:var(--muted);">
+    <strong>الصفحات المقروءة:</strong>
+    الأساتذة &nbsp;·&nbsp; المقررات &nbsp;·&nbsp; القاعات &nbsp;·&nbsp; الأفواج &nbsp;·&nbsp; الملخص
+  </p>
+</div>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div style="color:var(--muted);font-size:14px;">جارٍ تحميل البيانات من Google Sheets…</div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard">
+  <div class="filters">
+    <label>عرض:</label>
+    <select id="filter-college" onchange="applyFilters()"><option value="">كل الكليات</option></select>
+    <select id="filter-dept" onchange="applyFilters()"><option value="">كل الأقسام</option></select>
+    <span id="filter-summary" style="font-size:12px;color:var(--muted);margin-right:auto;"></span>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('teachers',this)">👨‍🏫 الأساتذة</button>
+    <button class="tab-btn" onclick="switchTab('rooms',this)">🏫 القاعات</button>
+    <button class="tab-btn" onclick="switchTab('courses',this)">📚 المقررات</button>
+    <button class="tab-btn" onclick="switchTab('overview',this)">📈 النظرة الكلية</button>
+    <button class="tab-btn" onclick="switchTab('conflicts',this)" id="tab-btn-conflicts">⚠️ التعارضات</button>
+  </div>
+
+  <!-- TEACHERS -->
+  <div id="tab-teachers" class="tab-pane active">
+    <div class="kpi-grid" id="kpi-teachers"></div>
+    <div class="section-card">
+      <div class="section-head">
+        <h3>الحجم الساعي لكل أستاذ</h3>
+        <span id="badge-teachers" class="section-badge badge-info"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>#</th><th>الاسم</th><th>الصفة</th><th>المنصب</th>
+            <th>القسم</th><th>الكلية</th>
+            <th>مح. (حصص)</th><th>أ.م. (حصص)</th>
+            <th>الحجم الفعلي</th><th>المرجع</th><th>الفارق</th><th>الحالة</th>
+          </tr></thead>
+          <tbody id="tbody-teachers"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ROOMS -->
+  <div id="tab-rooms" class="tab-pane">
+    <div class="kpi-grid" id="kpi-rooms"></div>
+    <div class="section-card">
+      <div class="section-head">
+        <h3>استغلال القاعات والمدرجات</h3>
+        <span id="badge-rooms" class="section-badge badge-info"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>القاعة / المدرج</th><th>النوع</th><th>الجناح / القسم</th>
+            <th>عدد الحصص</th><th>الاستغلال</th><th>الحالة</th><th>الأوقات الشاغرة</th>
+          </tr></thead>
+          <tbody id="tbody-rooms"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- COURSES -->
+  <div id="tab-courses" class="tab-pane">
+    <div class="kpi-grid" id="kpi-courses"></div>
+    <div class="section-card">
+      <div class="section-head">
+        <h3>مقررات غير مبرمجة كلياً</h3>
+        <span id="badge-unscheduled" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>المقياس</th><th>التخصص</th><th>المستوى</th><th>السداسي</th>
+            <th>محاضرة مطلوبة</th><th>أعمال موجهة مطلوبة</th><th>الناقص</th>
+          </tr></thead>
+          <tbody id="tbody-unscheduled"></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-head">
+        <h3>تغطية المقررات لكل فوج / مجموعة</h3>
+        <span id="badge-coverage" class="section-badge badge-info"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>المقياس</th><th>التخصص</th><th>المستوى</th>
+            <th>المجموعة / الفوج</th><th>نوع الحصة</th><th>الحالة</th>
+          </tr></thead>
+          <tbody id="tbody-coverage"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFLICTS -->
+  <div id="tab-conflicts" class="tab-pane">
+    <div class="kpi-grid" id="kpi-conflicts"></div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارض الأساتذة — أستاذ في حصتين في نفس الوقت</h3>
+        <span id="badge-cf-teachers" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>الأستاذ</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>المقياس 1</th><th>القاعة 1</th><th>المجموعة/الفوج 1</th>
+            <th>المقياس 2</th><th>القاعة 2</th><th>المجموعة/الفوج 2</th>
+          </tr></thead>
+          <tbody id="tbody-cf-teachers"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارض القاعات — قاعة مستخدمة مرتين في نفس الوقت</h3>
+        <span id="badge-cf-rooms" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>القاعة</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>المقياس 1</th><th>الأستاذ 1</th><th>الفوج/المجموعة 1</th>
+            <th>المقياس 2</th><th>الأستاذ 2</th><th>الفوج/المجموعة 2</th>
+          </tr></thead>
+          <tbody id="tbody-cf-rooms"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارض الأفواج — فوج/مجموعة في حصتين في نفس الوقت</h3>
+        <span id="badge-cf-groups" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>الفوج / المجموعة</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>المقياس 1</th><th>القاعة 1</th><th>الأستاذ 1</th>
+            <th>المقياس 2</th><th>القاعة 2</th><th>الأستاذ 2</th>
+          </tr></thead>
+          <tbody id="tbody-cf-groups"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="tab-overview" class="tab-pane">
+    <div class="kpi-grid" id="kpi-overview"></div>
+    <div class="two-col">
+      <div class="section-card">
+        <div class="section-head"><h3>حسب القسم</h3></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>القسم</th><th>الكلية</th><th>أساتذة</th><th>الحجم الكلي</th><th>متوسط/أستاذ</th><th>إضافية</th></tr></thead>
+            <tbody id="tbody-by-dept"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="section-card">
+        <div class="section-head"><h3>حسب الكلية</h3></div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>الكلية</th><th>أقسام</th><th>أساتذة</th><th>الحجم الكلي</th><th>إضافية</th></tr></thead>
+            <tbody id="tbody-by-college"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-head"><h3>توزيع الحصص على أيام الأسبوع</h3></div>
+      <div id="days-chart" style="padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;"></div>
+    </div>
+    <div class="section-card">
+      <div class="section-head"><h3>ملخص إجمالي – كل الكلية</h3></div>
+      <div id="global-stats" style="padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;"></div>
+    </div>
+  </div>
+
+  <!-- CONFLICTS -->
+  <div id="tab-conflicts" class="tab-pane">
+    <div class="kpi-grid" id="kpi-conflicts"></div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارضات الأستاذ</h3>
+        <span id="badge-c-teacher" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>الأستاذ</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>المقياس 1 / القاعة 1</th><th>المقياس 2 / القاعة 2</th><th>نوع</th>
+          </tr></thead>
+          <tbody id="tbody-c-teacher"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارضات القاعة</h3>
+        <span id="badge-c-room" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>القاعة</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>الحصة 1</th><th>الحصة 2</th>
+          </tr></thead>
+          <tbody id="tbody-c-room"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <h3>⚠️ تعارضات الفوج / المجموعة</h3>
+        <span id="badge-c-group" class="section-badge badge-err"></span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>الفوج / المجموعة</th><th>التخصص / المستوى</th><th>اليوم</th><th>رقم الحصة</th>
+            <th>الحصة 1</th><th>الحصة 2</th>
+          </tr></thead>
+          <tbody id="tbody-c-group"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ═══════════ CONFIG ═══════════
+const SHEET_NAMES = {
+  teachers:'الأساتذة', courses:'المقررات',
+  rooms:'القاعات', groups:'الأفواج', summary:'الملخص'
+};
+const COEFF_CM = 2.25;   // محاضرة: 1.5 × 1.5
+const COEFF_TD = 1.5;    // أعمال موجهة: 1.5 × 1
+const REF_NORMAL = 9;
+const REF_POST   = 4.5;
+const MIN_ROOM   = 5;    // حد القاعة الفارغة
+
+// شبكة الأيام والحصص الكاملة
+const DAYS = ['السبت','الأحد','الاثنين','الثلاثاء','الأربعاء','الخميس'];
+const SLOTS = ['1','2','3','4','5','6']; // رقم الحصة من 1 إلى 6
+
+let RAW = {};
+let FILTERED = {};
+let currentCollege = '', currentDept = '';
+
+// ═══════════ FETCH ═══════════
+const API_URL = 'https://script.google.com/macros/s/AKfycbziyeTmH5bOaIhorbyrsd6NxLS-gcfjJOPX1zs_4Btfxtfa4rM4J2SFJW5nZ3WnDuEZ/exec';
+
+const SHEET_KEY_MAP = {
+  'الأساتذة': 'teachers',
+  'المقررات': 'courses',
+  'القاعات':  'rooms',
+  'الأفواج':  'groups',
+  'الملخص':   'summary'
+};
+
+async function loadData() {
+  document.getElementById('setup-panel').style.display = 'none';
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('load-error').style.display = 'none';
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error('خطأ في الاتصال (' + res.status + ')');
+    const json = await res.json();
+    RAW = {};
+    Object.entries(SHEET_KEY_MAP).forEach(([arName, key]) => {
+      RAW[key] = json[arName] || [];
+    });
+    document.getElementById('last-update').textContent =
+      'آخر تحديث: ' + new Date().toLocaleString('ar-DZ');
+    buildFilters();
+    applyFilters();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  } catch(e) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('setup-panel').style.display = 'block';
+    showError('⚠️ فشل الاتصال: ' + e.message);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('load-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+function showSetup() {
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('setup-panel').style.display = 'block';
+}
+
+// ═══════════ FILTERS ═══════════
+function buildFilters() {
+  const colleges = [...new Set(RAW.teachers.map(r=>r['الكلية']).filter(Boolean))].sort();
+  const cSel = document.getElementById('filter-college');
+  cSel.innerHTML = '<option value="">كل الكليات</option>';
+  colleges.forEach(c => cSel.innerHTML += `<option value="${c}">${c}</option>`);
+}
+
+function applyFilters() {
+  currentCollege = document.getElementById('filter-college').value;
+  currentDept    = document.getElementById('filter-dept').value;
+
+  const depts = [...new Set(
+    RAW.teachers.filter(r => !currentCollege || r['الكلية']===currentCollege)
+      .map(r=>r['القسم']).filter(Boolean)
+  )].sort();
+  const dSel = document.getElementById('filter-dept');
+  const prev = dSel.value;
+  dSel.innerHTML = '<option value="">كل الأقسام</option>';
+  depts.forEach(d => dSel.innerHTML += `<option value="${d}">${d}</option>`);
+  if (depts.includes(prev)) dSel.value = prev;
+  currentDept = dSel.value;
+
+  const fT = r => (!currentCollege||r['الكلية']===currentCollege) && (!currentDept||r['القسم']===currentDept);
+  const fS = r => (!currentCollege||r['الكلية']===currentCollege) && (!currentDept||r['القسم']===currentDept);
+
+  FILTERED.teachers = RAW.teachers.filter(fT);
+  FILTERED.courses  = RAW.courses.filter(fT);
+  FILTERED.rooms    = RAW.rooms.filter(fT);
+  FILTERED.groups   = RAW.groups.filter(fT);
+  FILTERED.summary  = RAW.summary.filter(fS);
+
+  document.getElementById('filter-summary').textContent =
+    `${FILTERED.summary.length} حصة · ${FILTERED.teachers.length} أستاذ`;
+
+  renderAll();
+}
+
+// ═══════════ RENDER ALL ═══════════
+function renderAll() {
+  renderTeachers();
+  renderRooms();
+  renderCourses();
+  renderOverview();
+  renderConflicts();
+}
+
+// ═══════════ CONFLICTS ═══════════
+function renderConflicts() {
+  // بناء فهرس الحصص: key = "يوم|رقم_الحصة"
+  const slotIndex = {};
+  FILTERED.summary.forEach(row => {
+    const day  = String(row['اليوم']||'').trim();
+    const slot = String(row['رقم الحصة']||'').trim();
+    if (!day || !slot) return;
+    const key = `${day}|${slot}`;
+    if (!slotIndex[key]) slotIndex[key] = [];
+    slotIndex[key].push({
+      teacher : String(row['اسم الأستاذ']||'').trim(),
+      room    : String(row['القاعة']||'').trim(),
+      group   : String(row['المجموعة/الفوج']||'').trim(),
+      course  : String(row['اسم المقياس']||'').trim(),
+      type    : String(row['نوع الحصة']||'').trim(),
+      spec    : String(row['التخصص']||'').trim(),
+      level   : String(row['المستوى']||'').trim(),
+      day, slot
+    });
+  });
+
+  const cTeacher = [], cRoom = [], cGroup = [];
+
+  Object.values(slotIndex).forEach(sessions => {
+    // ─── تعارض الأستاذ ───
+    const byTeacher = {};
+    sessions.forEach(s => { if(s.teacher){(byTeacher[s.teacher]=byTeacher[s.teacher]||[]).push(s);} });
+    Object.entries(byTeacher).forEach(([teacher, list]) => {
+      for (let i=0; i<list.length-1; i++) for (let j=i+1; j<list.length; j++) {
+        cTeacher.push({ teacher,
+          day: list[i].day, slot: list[i].slot,
+          c1: list[i].course, r1: list[i].room, g1: list[i].group,
+          c2: list[j].course, r2: list[j].room, g2: list[j].group,
+        });
+      }
+    });
+
+    // ─── تعارض القاعة ───
+    const byRoom = {};
+    sessions.forEach(s => { if(s.room){(byRoom[s.room]=byRoom[s.room]||[]).push(s);} });
+    Object.entries(byRoom).forEach(([room, list]) => {
+      for (let i=0; i<list.length-1; i++) for (let j=i+1; j<list.length; j++) {
+        cRoom.push({ room,
+          day: list[i].day, slot: list[i].slot,
+          c1: list[i].course, t1: list[i].teacher||'—', g1: list[i].group,
+          c2: list[j].course, t2: list[j].teacher||'—', g2: list[j].group,
+        });
+      }
+    });
+
+    // ─── تعارض الفوج / المجموعة ───
+    // نبني مفتاح مركّب: تخصص|مستوى|مجموعة_أو_فوج
+    const byGroup = {};
+    sessions.forEach(s => {
+      if (!s.group) return;
+      const k = `${s.spec}|${s.level}|${s.group}`;
+      (byGroup[k] = byGroup[k]||[]).push(s);
+    });
+    Object.entries(byGroup).forEach(([gk, list]) => {
+      const parts = gk.split('|');
+      const grp = parts[2];
+      const specLevel = `${parts[0]} — ${parts[1]}`;
+      for (let i=0; i<list.length-1; i++) for (let j=i+1; j<list.length; j++) {
+        cGroup.push({ grp, specLevel,
+          day: list[i].day, slot: list[i].slot,
+          c1: list[i].course, r1: list[i].room, t1: list[i].teacher||'—',
+          c2: list[j].course, r2: list[j].room, t2: list[j].teacher||'—',
+        });
+      }
+    });
+  });
+
+  // ─── KPIs ───
+  const total = cTeacher.length + cRoom.length + cGroup.length;
+  const c = n => n>0 ? 'var(--red)'   : 'var(--green)';
+  const b = n => n>0 ? 'var(--red-light)' : 'var(--green-light)';
+  document.getElementById('kpi-conflicts').innerHTML = [
+    kpi('⚠️', total,           'إجمالي التعارضات',         c(total),          b(total)),
+    kpi('👨‍🏫', cTeacher.length, 'تعارضات الأساتذة',         c(cTeacher.length), b(cTeacher.length)),
+    kpi('🏫',  cRoom.length,    'تعارضات القاعات',           c(cRoom.length),    b(cRoom.length)),
+    kpi('👥',  cGroup.length,   'تعارضات الأفواج/المجموعات', c(cGroup.length),   b(cGroup.length)),
+  ].join('');
+
+  // زر التبويب
+  const btn = document.getElementById('tab-btn-conflicts');
+  if (btn) btn.textContent = total > 0 ? `⚠️ التعارضات (${total})` : '✅ لا تعارضات';
+
+  // badges
+  document.getElementById('badge-cf-teachers').textContent = `${cTeacher.length} تعارض`;
+  document.getElementById('badge-cf-rooms').textContent    = `${cRoom.length} تعارض`;
+  document.getElementById('badge-cf-groups').textContent   = `${cGroup.length} تعارض`;
+
+  const ok9 = `<tr><td colspan="9" class="empty" style="color:var(--green);">✅ لا توجد تعارضات</td></tr>`;
+
+  // جدول تعارض الأساتذة (9 أعمدة)
+  document.getElementById('tbody-cf-teachers').innerHTML = cTeacher.length===0 ? ok9
+    : cTeacher.map(r=>`<tr>
+        <td style="font-weight:600;">${r.teacher}</td>
+        <td>${r.day}</td>
+        <td style="text-align:center;font-weight:700;">ح${r.slot}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c1}</td>
+        <td style="font-size:12px;">${r.r1||'—'}</td>
+        <td style="font-size:12px;">${r.g1||'—'}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c2}</td>
+        <td style="font-size:12px;">${r.r2||'—'}</td>
+        <td style="font-size:12px;">${r.g2||'—'}</td>
+      </tr>`).join('');
+
+  // جدول تعارض القاعات (9 أعمدة)
+  document.getElementById('tbody-cf-rooms').innerHTML = cRoom.length===0 ? ok9
+    : cRoom.map(r=>`<tr>
+        <td style="font-weight:600;">${r.room}</td>
+        <td>${r.day}</td>
+        <td style="text-align:center;font-weight:700;">ح${r.slot}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c1}</td>
+        <td style="font-size:12px;">${r.t1}</td>
+        <td style="font-size:12px;">${r.g1||'—'}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c2}</td>
+        <td style="font-size:12px;">${r.t2}</td>
+        <td style="font-size:12px;">${r.g2||'—'}</td>
+      </tr>`).join('');
+
+  // جدول تعارض الأفواج (9 أعمدة)
+  document.getElementById('tbody-cf-groups').innerHTML = cGroup.length===0 ? ok9
+    : cGroup.map(r=>`<tr>
+        <td style="font-weight:600;">${r.grp}</td>
+        <td>${r.day}</td>
+        <td style="text-align:center;font-weight:700;">ح${r.slot}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c1}</td>
+        <td style="font-size:12px;">${r.r1||'—'}</td>
+        <td style="font-size:12px;">${r.t1}</td>
+        <td style="color:var(--red);font-size:12px;">${r.c2}</td>
+        <td style="font-size:12px;">${r.r2||'—'}</td>
+        <td style="font-size:12px;">${r.t2}</td>
+      </tr>`).join('');
+}
+
+
+// ═══════════ TEACHERS ═══════════
+function renderTeachers() {
+  // count sessions per teacher
+  const sMap = {};
+  FILTERED.summary.forEach(row => {
+    const name = String(row['اسم الأستاذ']||'').trim(); if (!name) return;
+    if (!sMap[name]) sMap[name] = {cm:0, td:0};
+    const type = String(row['نوع الحصة']||'').trim();
+    if (type === 'محاضرة') sMap[name].cm++;
+    else if (type === 'أعمال موجهة') sMap[name].td++;
+  });
+
+  let cOk=0, cLow=0, cHigh=0, cTemp=0, cPerm=0;
+  const rows = [];
+
+  FILTERED.teachers.forEach(t => {
+    const name = String(t['الاسم']||'').trim(); if (!name) return;
+    const sifa   = String(t['الصفة']||'').trim();
+    const mansab = String(t['المنصب']||'').trim();
+
+    // صفة: دائم / مؤقت / متعاقد
+    const isTemp = sifa === 'مؤقت' || sifa === 'متعاقد';
+    // منصب: "بدون منصب" أو فارغ = لا منصب
+    const hasMansab = mansab !== '' && mansab !== 'بدون منصب' && mansab !== '-';
+
+    const s = sMap[name] || {cm:0, td:0};
+    const actualH = +(s.cm * COEFF_CM + s.td * COEFF_TD).toFixed(2);
+
+    let ref = null, diff = null, statusBadge, statusLabel;
+
+    if (isTemp) {
+      cTemp++;
+      statusBadge = 'badge-temp';
+      statusLabel = actualH > 0 ? `كل الساعات إضافية (${actualH} س)` : 'لا حصص مسندة';
+    } else {
+      cPerm++;
+      ref  = hasMansab ? REF_POST : REF_NORMAL;
+      diff = +(actualH - ref).toFixed(2);
+      if (Math.abs(diff) < 0.01) { cOk++;   statusBadge = 'badge-ok';    statusLabel = 'مكتمل ✓'; }
+      else if (diff < 0)         { cLow++;  statusBadge = 'badge-err';   statusLabel = `نقص ${Math.abs(diff)} س`; }
+      else                       { cHigh++; statusBadge = 'badge-extra'; statusLabel = `إضافية +${diff} س`; }
+    }
+
+    rows.push({name, sifa, mansab: mansab||'بدون منصب', dept:t['القسم'], college:t['الكلية'],
+      cm:s.cm, td:s.td, actualH, ref, diff, statusBadge, statusLabel, isTemp, hasMansab});
+  });
+
+  document.getElementById('kpi-teachers').innerHTML = [
+    kpi('👨‍🏫', rows.length,  'إجمالي الأساتذة',       'var(--accent)',  'var(--accent-light)'),
+    kpi('🏛️',  cPerm,        'دائمون',                 'var(--purple)', 'var(--purple-light)'),
+    kpi('✅',  cOk,          'مكتملو الحجم الساعي',    'var(--green)',  'var(--green-light)'),
+    kpi('⬇️',  cLow,         'لديهم نقص',              'var(--red)',    'var(--red-light)'),
+    kpi('⬆️',  cHigh,        'لديهم ساعات إضافية',     'var(--purple)', 'var(--purple-light)'),
+    kpi('🔄',  cTemp,        'مؤقت / متعاقد',          'var(--teal)',   'var(--teal-light)'),
+  ].join('');
+
+  document.getElementById('badge-teachers').textContent = `${rows.length} أستاذ`;
+  document.getElementById('tbody-teachers').innerHTML = rows.length === 0
+    ? `<tr><td colspan="12" class="empty">لا توجد بيانات</td></tr>`
+    : rows.map((r,i) => `<tr>
+        <td style="color:var(--muted);font-size:11px;">${i+1}</td>
+        <td style="font-weight:600;">${r.name}</td>
+        <td><span class="badge ${r.isTemp?'badge-temp':'badge-info'}">${r.sifa||'—'}</span></td>
+        <td style="font-size:12px;color:var(--muted);">${r.mansab}</td>
+        <td style="font-size:12px;">${r.dept||'—'}</td>
+        <td style="font-size:12px;">${r.college||'—'}</td>
+        <td style="text-align:center;">${r.cm}</td>
+        <td style="text-align:center;">${r.td}</td>
+        <td style="font-weight:700;color:var(--accent);">${r.actualH} س</td>
+        <td style="color:var(--muted);">${r.ref!==null ? r.ref+' س' : '—'}</td>
+        <td style="font-weight:600;color:${
+          r.diff===null?'var(--teal)':r.diff<0?'var(--red)':r.diff>0?'var(--purple)':'var(--green)'
+        };">${r.diff===null?'—':r.diff===0?'صفر':(r.diff>0?'+':'')+r.diff+' س'}</td>
+        <td><span class="badge ${r.statusBadge}">${r.statusLabel}</span></td>
+      </tr>`).join('');
+}
+
+// ═══════════ ROOMS ═══════════
+function renderRooms() {
+  // بناء شبكة الحصص الكاملة من الملخص (السبت→الخميس، حصة 1→6)
+  // نستخدم ما هو موجود في الملخص + نكمل بالشبكة الكاملة
+  const usedSlots = new Set();
+  FILTERED.summary.forEach(r => {
+    const d = String(r['اليوم']||'').trim();
+    const s = String(r['رقم الحصة']||'').trim();
+    if (d && s) usedSlots.add(`${d}|${s}`);
+  });
+
+  // كل الخانات الممكنة
+  const allPossibleSlots = [];
+  DAYS.forEach(d => SLOTS.forEach(s => allPossibleSlots.push(`${d}|${s}`)));
+
+  // count sessions per room
+  const roomMap = {};
+  FILTERED.summary.forEach(row => {
+    const rm = String(row['القاعة']||'').trim(); if (!rm) return;
+    if (!roomMap[rm]) roomMap[rm] = {count:0, used: new Set()};
+    roomMap[rm].count++;
+    const d=String(row['اليوم']||'').trim(), s=String(row['رقم الحصة']||'').trim();
+    if (d&&s) roomMap[rm].used.add(`${d}|${s}`);
+  });
+
+  let total=0, empty=0, good=0;
+  const rows = [];
+
+  FILTERED.rooms.forEach(rm => {
+    const name = String(rm['الجناح']||'').trim(); if (!name) return;
+    total++;
+    const data = roomMap[name] || {count:0, used:new Set()};
+    const isEmpty = data.count < MIN_ROOM;
+    if (isEmpty) empty++; else good++;
+
+    // الأوقات الشاغرة = كل الخانات الممكنة التي لم تُستخدم
+    const freeSlots = allPossibleSlots.filter(sl => !data.used.has(sl));
+    // تجميع حسب اليوم
+    const freeByDay = {};
+    freeSlots.forEach(sl => {
+      const [day, slot] = sl.split('|');
+      if (!freeByDay[day]) freeByDay[day] = [];
+      freeByDay[day].push('ح'+slot);
+    });
+    const freeText = Object.entries(freeByDay)
+      .map(([d,ss]) => `${d}: ${ss.join('،')}`)
+      .join(' | ');
+
+    rows.push({
+      name, type: rm['النوع']||'—', wing: rm['القسم']||'—',
+      count: data.count, isEmpty, freeText: freeText || 'لا يوجد وقت شاغر'
+    });
+  });
+
+  // الحد الأقصى للحصص في الجدول = عدد الأيام × عدد الحصص
+  const maxSessions = DAYS.length * SLOTS.length;
+
+  document.getElementById('kpi-rooms').innerHTML = [
+    kpi('🏫', total,  'إجمالي القاعات',         'var(--accent)', 'var(--accent-light)'),
+    kpi('✅', good,   `≥${MIN_ROOM} حصص (مستغلة)`, 'var(--green)', 'var(--green-light)'),
+    kpi('🔴', empty,  `< ${MIN_ROOM} حصص (فارغة)`,'var(--red)',   'var(--red-light)'),
+  ].join('');
+
+  document.getElementById('badge-rooms').textContent = `${total} قاعة / مدرج`;
+  document.getElementById('tbody-rooms').innerHTML = rows.length === 0
+    ? `<tr><td colspan="7" class="empty">لا توجد بيانات</td></tr>`
+    : rows.map(r => {
+      const pct = Math.min(100, Math.round(r.count/maxSessions*100));
+      const color = r.count >= MIN_ROOM ? 'var(--green)' : 'var(--red)';
+      return `<tr>
+        <td style="font-weight:600;">${r.name}</td>
+        <td><span class="badge badge-info">${r.type}</span></td>
+        <td style="font-size:12px;">${r.wing}</td>
+        <td style="text-align:center;font-weight:700;">${r.count}</td>
+        <td>
+          <div class="prog-wrap">
+            <div class="prog"><div class="prog-fill" style="width:${pct}%;background:${color};"></div></div>
+            <span class="prog-lbl" style="color:${color};">${pct}%</span>
+          </div>
+        </td>
+        <td><span class="badge ${r.isEmpty?'badge-err':'badge-ok'}">${r.isEmpty?'قليل الاستخدام':'مستغلة ✓'}</span></td>
+        <td style="font-size:11px;color:var(--muted);max-width:240px;">${r.isEmpty?r.freeText:'—'}</td>
+      </tr>`;
+    }).join('');
+}
+
+// ═══════════ COURSES ═══════════
+function buildGroupsMap() {
+  // من جدول الأفواج:
+  // كل سطر: تخصص + مستوى + مجموعة + أفواج (مفصولة بفاصلة)
+  // نبني: Map[تخصص|مستوى] = { groups: Set<string>, froujByGroup: Map<group, Set<fawj>> }
+  const map = {};
+  FILTERED.groups.forEach(g => {
+    const spec  = String(g['التخصص']||'').trim();
+    const level = String(g['المستوى']||'').trim();
+    const grp   = String(g['المجموعة']||'').trim();
+    const froujRaw = String(g['الأفواج']||'').trim();
+    if (!spec && !level) return;
+    const key = `${spec}|${level}`;
+    if (!map[key]) map[key] = { groups: new Set(), froujByGroup: {} };
+    if (grp) {
+      map[key].groups.add(grp);
+      if (!map[key].froujByGroup[grp]) map[key].froujByGroup[grp] = new Set();
+      // الأفواج مفصولة بفاصلة
+      froujRaw.split(',').map(f=>f.trim()).filter(Boolean).forEach(f => {
+        map[key].froujByGroup[grp].add(f);
+      });
+    }
+  });
+  return map;
+}
+
+function renderCourses() {
+  // ما تم تبرمجته في الملخص
+  // نخزن: مفتاح = مقياس|تخصص|مستوى => { cm: Set<مجموعة>, td: Set<فوج> }
+  const scheduled = {};
+  FILTERED.summary.forEach(row => {
+    const miqyas = String(row['اسم المقياس']||'').trim();
+    const spec   = String(row['التخصص']||'').trim();
+    const level  = String(row['المستوى']||'').trim();
+    const grpFwj = String(row['المجموعة/الفوج']||'').trim();
+    const type   = String(row['نوع الحصة']||'').trim();
+    if (!miqyas) return;
+    const key = `${miqyas}|${spec}|${level}`;
+    if (!scheduled[key]) scheduled[key] = {cm: new Set(), td: new Set()};
+    if (type === 'محاضرة')       scheduled[key].cm.add(grpFwj);
+    if (type === 'أعمال موجهة')  scheduled[key].td.add(grpFwj);
+  });
+
+  const groupsMap = buildGroupsMap();
+
+  let total=0, done=0, partial=0, unscheduled=0;
+  const unschRows = [], covRows = [];
+
+  FILTERED.courses.forEach(c => {
+    const miqyas = String(c['اسم_المقياس']||'').trim(); if (!miqyas) return;
+    total++;
+    const spec  = String(c['التخصص']||'').trim();
+    const level = String(c['المستوى']||'').trim();
+    const key   = `${miqyas}|${spec}|${level}`;
+    const sc    = scheduled[key] || {cm: new Set(), td: new Set()};
+    const gKey  = `${spec}|${level}`;
+    const gm    = groupsMap[gKey] || {groups: new Set(), froujByGroup: {}};
+
+    const needsCM = c['محاضرة'] === true || c['محاضرة'] === 1 || c['محاضرة'] === '1' || c['محاضرة'] === 'نعم' || +c['حصص_المحاضرة'] > 0;
+    const needsTD = c['أعمال_موجهة'] === true || c['أعمال_موجهة'] === 1 || c['أعمال_موجهة'] === '1' || c['أعمال_موجهة'] === 'نعم' || +c['حصص_الأعمال'] > 0;
+
+    let anyMissing = false;
+
+    if (needsCM) {
+      // محاضرة → تُبرمج لكل مجموعة
+      gm.groups.forEach(grp => {
+        const scheduled_cm = sc.cm.has(grp);
+        if (!scheduled_cm) anyMissing = true;
+        covRows.push({miqyas, spec, level, grp, type:'محاضرة', done: scheduled_cm});
+      });
+      // إذا لا توجد مجموعات مسجلة نضيف تحذير
+      if (gm.groups.size === 0 && !sc.cm.has('')) {
+        covRows.push({miqyas, spec, level, grp:'(لا توجد مجموعات)', type:'محاضرة', done: sc.cm.size>0});
+      }
+    }
+
+    if (needsTD) {
+      // أعمال موجهة → تُبرمج لكل فوج في كل مجموعة
+      let foundFrouj = false;
+      gm.groups.forEach(grp => {
+        const frouj = gm.froujByGroup[grp] || new Set();
+        frouj.forEach(fwj => {
+          foundFrouj = true;
+          const scheduled_td = sc.td.has(fwj);
+          if (!scheduled_td) anyMissing = true;
+          covRows.push({miqyas, spec, level, grp: `${grp} / ${fwj}`, type:'أعمال موجهة', done: scheduled_td});
+        });
+      });
+      if (!foundFrouj) {
+        const hasTD = sc.td.size > 0;
+        covRows.push({miqyas, spec, level, grp:'(لا توجد أفواج)', type:'أعمال موجهة', done: hasTD});
+        if (!hasTD) anyMissing = true;
+      }
+    }
+
+    const scheduledAnything = sc.cm.size > 0 || sc.td.size > 0;
+    if (!scheduledAnything && (needsCM || needsTD)) {
+      unscheduled++;
+      unschRows.push({
+        miqyas, spec, level,
+        sem: c['السداسي']||'—',
+        needsCM: needsCM ? (c['حصص_المحاضرة']||'1')+' حصة/أسبوع' : '—',
+        needsTD: needsTD ? (c['حصص_الأعمال']||'1')+' حصة/أسبوع' : '—',
+        missing: [needsCM?'محاضرة':'', needsTD?'أعمال موجهة':''].filter(Boolean).join(' + ')
+      });
+    } else if (anyMissing) partial++;
+    else done++;
+  });
+
+  document.getElementById('kpi-courses').innerHTML = [
+    kpi('📚', total,       'إجمالي المقررات',    'var(--accent)', 'var(--accent-light)'),
+    kpi('✅', done,        'مبرمجة بالكامل',      'var(--green)',  'var(--green-light)'),
+    kpi('⚠️', partial,     'مبرمجة جزئياً',       'var(--yellow)', 'var(--yellow-light)'),
+    kpi('❌', unscheduled, 'غير مبرمجة أبداً',   'var(--red)',    'var(--red-light)'),
+  ].join('');
+
+  document.getElementById('badge-unscheduled').textContent = `${unscheduled} مقرر`;
+  document.getElementById('badge-coverage').textContent = `${covRows.length} سجل`;
+
+  document.getElementById('tbody-unscheduled').innerHTML = unschRows.length === 0
+    ? `<tr><td colspan="7" class="empty">✅ لا توجد مقررات غير مبرمجة كلياً</td></tr>`
+    : unschRows.map(r => `<tr>
+        <td style="font-weight:600;">${r.miqyas}</td>
+        <td>${r.spec||'—'}</td><td>${r.level||'—'}</td><td>${r.sem}</td>
+        <td>${r.needsCM}</td><td>${r.needsTD}</td>
+        <td><span class="badge badge-err">${r.missing}</span></td>
+      </tr>`).join('');
+
+  document.getElementById('tbody-coverage').innerHTML = covRows.length === 0
+    ? `<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>`
+    : covRows.map(r => `<tr>
+        <td style="font-weight:600;">${r.miqyas}</td>
+        <td>${r.spec||'—'}</td><td>${r.level||'—'}</td>
+        <td>${r.grp}</td>
+        <td><span class="badge badge-info">${r.type}</span></td>
+        <td><span class="badge ${r.done?'badge-ok':'badge-err'}">${r.done?'مبرمجة ✓':'غير مبرمجة ✗'}</span></td>
+      </tr>`).join('');
+}
+
+// ═══════════ OVERVIEW ═══════════
+function renderOverview() {
+  // بناء بيانات الأساتذة (الحجم الساعي)
+  const sMap = {};
+  FILTERED.summary.forEach(row => {
+    const name = String(row['اسم الأستاذ']||'').trim(); if (!name) return;
+    if (!sMap[name]) sMap[name] = {cm:0,td:0};
+    const type = String(row['نوع الحصة']||'').trim();
+    if (type==='محاضرة') sMap[name].cm++;
+    else if (type==='أعمال موجهة') sMap[name].td++;
+  });
+
+  // حسب القسم
+  const deptMap = {};
+  FILTERED.teachers.forEach(t => {
+    const key = `${t['القسم']}|${t['الكلية']}`;
+    if (!deptMap[key]) deptMap[key] = {dept:t['القسم'],college:t['الكلية'],teachers:0,totalH:0,extraH:0};
+    deptMap[key].teachers++;
+    const s = sMap[String(t['الاسم']||'').trim()] || {cm:0,td:0};
+    const actualH = s.cm*COEFF_CM + s.td*COEFF_TD;
+    deptMap[key].totalH += actualH;
+    const sifa   = String(t['الصفة']||'').trim();
+    const mansab = String(t['المنصب']||'').trim();
+    const isTemp = sifa==='مؤقت'||sifa==='متعاقد';
+    const hasMansab = mansab!==''&&mansab!=='بدون منصب'&&mansab!=='-';
+    if (isTemp) { deptMap[key].extraH += actualH; }
+    else {
+      const ref = hasMansab ? REF_POST : REF_NORMAL;
+      const diff = actualH - ref;
+      if (diff > 0) deptMap[key].extraH += diff;
+    }
+  });
+
+  const deptRows = Object.values(deptMap);
+  document.getElementById('tbody-by-dept').innerHTML = deptRows.length===0
+    ? `<tr><td colspan="6" class="empty">لا توجد بيانات</td></tr>`
+    : deptRows.map(r=>`<tr>
+        <td style="font-weight:600;">${r.dept||'—'}</td>
+        <td style="font-size:12px;">${r.college||'—'}</td>
+        <td style="text-align:center;">${r.teachers}</td>
+        <td style="font-weight:700;color:var(--accent);">${r.totalH.toFixed(1)} س</td>
+        <td>${r.teachers>0?(r.totalH/r.teachers).toFixed(1)+' س':'—'}</td>
+        <td style="color:var(--purple);font-weight:600;">${r.extraH>0?'+'+r.extraH.toFixed(1)+' س':'—'}</td>
+      </tr>`).join('');
+
+  // حسب الكلية
+  const colMap = {};
+  deptRows.forEach(d => {
+    if (!colMap[d.college]) colMap[d.college]={college:d.college,depts:0,teachers:0,totalH:0,extraH:0};
+    colMap[d.college].depts++;
+    colMap[d.college].teachers += d.teachers;
+    colMap[d.college].totalH   += d.totalH;
+    colMap[d.college].extraH   += d.extraH;
+  });
+  const colRows = Object.values(colMap);
+  document.getElementById('tbody-by-college').innerHTML = colRows.length===0
+    ? `<tr><td colspan="5" class="empty">لا توجد بيانات</td></tr>`
+    : colRows.map(r=>`<tr>
+        <td style="font-weight:600;">${r.college||'—'}</td>
+        <td style="text-align:center;">${r.depts}</td>
+        <td style="text-align:center;">${r.teachers}</td>
+        <td style="font-weight:700;color:var(--accent);">${r.totalH.toFixed(1)} س</td>
+        <td style="color:var(--purple);font-weight:600;">${r.extraH>0?'+'+r.extraH.toFixed(1)+' س':'—'}</td>
+      </tr>`).join('');
+
+  // توزيع الحصص على الأيام
+  const dayCounts = {};
+  DAYS.forEach(d => dayCounts[d] = 0);
+  FILTERED.summary.forEach(r => {
+    const d = String(r['اليوم']||'').trim();
+    if (dayCounts[d] !== undefined) dayCounts[d]++;
+    else if (d) dayCounts[d] = (dayCounts[d]||0)+1;
+  });
+  const maxDay = Math.max(...Object.values(dayCounts), 1);
+  document.getElementById('days-chart').innerHTML = DAYS.map(d => {
+    const cnt = dayCounts[d]||0;
+    const pct = Math.round(cnt/maxDay*100);
+    return `<div style="background:var(--bg);padding:12px;border-radius:8px;text-align:center;">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;">${d}</div>
+      <div style="height:60px;display:flex;align-items:flex-end;justify-content:center;">
+        <div style="width:36px;height:${Math.max(pct*0.6,2)}%;background:var(--accent);border-radius:4px 4px 0 0;min-height:3px;max-height:60px;"></div>
+      </div>
+      <div style="font-size:20px;font-weight:700;color:var(--accent);margin-top:4px;">${cnt}</div>
+      <div style="font-size:11px;color:var(--muted);">حصة</div>
+    </div>`;
+  }).join('');
+
+  // KPI الكلي
+  const totalH = FILTERED.summary.reduce((acc,r) => {
+    const type=String(r['نوع الحصة']||'').trim();
+    return acc+(type==='محاضرة'?COEFF_CM:COEFF_TD);
+  },0);
+  const totalExtra = deptRows.reduce((a,r)=>a+r.extraH,0);
+  const totalLow   = FILTERED.teachers.filter(t => {
+    const sifa=String(t['الصفة']||'').trim();
+    const isTemp=sifa==='مؤقت'||sifa==='متعاقد'; if(isTemp) return false;
+    const mansab=String(t['المنصب']||'').trim();
+    const hasMansab=mansab!==''&&mansab!=='بدون منصب'&&mansab!=='-';
+    const s=sMap[String(t['الاسم']||'').trim()]||{cm:0,td:0};
+    const actualH=s.cm*COEFF_CM+s.td*COEFF_TD;
+    const ref=hasMansab?REF_POST:REF_NORMAL;
+    return actualH < ref-0.01;
+  }).length;
+
+  document.getElementById('kpi-overview').innerHTML = [
+    kpi('📊', FILTERED.summary.length, 'إجمالي الحصص المبرمجة', 'var(--accent)', 'var(--accent-light)'),
+    kpi('⏱️', totalH.toFixed(1)+' س',  'الحجم الساعي الكلي',    'var(--purple)','var(--purple-light)'),
+    kpi('⬆️', totalExtra.toFixed(1)+' س','إجمالي الساعات الإضافية','var(--teal)','var(--teal-light)'),
+    kpi('⬇️', totalLow,                 'أساتذة لديهم نقص',       'var(--red)',  'var(--red-light)'),
+    kpi('🏫', FILTERED.rooms.length,    'إجمالي القاعات',          'var(--green)','var(--green-light)'),
+    kpi('📚', FILTERED.courses.length,  'إجمالي المقررات',         'var(--yellow)','var(--yellow-light)'),
+  ].join('');
+
+  // ملخص إجمالي
+  document.getElementById('global-stats').innerHTML = [
+    statBox('إجمالي الأساتذة الدائمين', FILTERED.teachers.filter(t=>!(['مؤقت','متعاقد'].includes(String(t['الصفة']||'').trim()))).length, 'var(--purple)'),
+    statBox('إجمالي المؤقتين / المتعاقدين', FILTERED.teachers.filter(t=>['مؤقت','متعاقد'].includes(String(t['الصفة']||'').trim())).length, 'var(--teal)'),
+    statBox('أساتذة بمنصب (4.5 س)', FILTERED.teachers.filter(t=>{const m=String(t['المنصب']||'').trim();return m&&m!=='بدون منصب'&&m!=='-';}).length, 'var(--accent)'),
+    statBox('إجمالي الأفواج', FILTERED.groups.length, 'var(--green)'),
+    statBox('حصص محاضرة', FILTERED.summary.filter(r=>String(r['نوع الحصة']||'').trim()==='محاضرة').length, 'var(--blue,#2563eb)'),
+    statBox('حصص أعمال موجهة', FILTERED.summary.filter(r=>String(r['نوع الحصة']||'').trim()==='أعمال موجهة').length, 'var(--yellow)'),
+  ].join('');
+}
+
+// ═══════════ PRINT ═══════════
+function openPrintModal() { document.getElementById('print-modal').classList.add('open'); }
+function closePrintModal() { document.getElementById('print-modal').classList.remove('open'); }
+function doPrint() {
+  closePrintModal();
+  // إظهار التبويبات المطلوبة فقط ثم طباعة
+  const map = {teachers:'pr-teachers',rooms:'pr-rooms',courses:'pr-courses',overview:'pr-overview',conflicts:'pr-conflicts'};
+  Object.entries(map).forEach(([tab, chk]) => {
+    const el = document.getElementById(`tab-${tab}`);
+    el.style.display = document.getElementById(chk).checked ? 'block' : 'none';
+  });
+  window.print();
+  // إعادة العرض الطبيعي
+  Object.keys(map).forEach(tab => {
+    const el = document.getElementById(`tab-${tab}`);
+    el.style.display = '';
+    el.classList.remove('active');
+  });
+  // إعادة التبويب النشط
+  const activeBtn = document.querySelector('.tab-btn.active');
+  if (activeBtn) {
+    const tabName = activeBtn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    if (tabName) document.getElementById(`tab-${tabName}`).classList.add('active');
+  }
+}
+
+// ═══════════ HELPERS ═══════════
+function kpi(icon, val, label, color, bg) {
+  return `<div class="kpi">
+    <div class="kpi-accent" style="background:${color};"></div>
+    <div class="kpi-icon" style="background:${bg};color:${color};">${icon}</div>
+    <div class="kpi-val" style="color:${color};">${val}</div>
+    <div class="kpi-lbl">${label}</div>
+  </div>`;
+}
+
+function statBox(label, val, color) {
+  return `<div style="background:var(--bg);padding:14px;border-radius:8px;border-right:4px solid ${color};">
+    <div style="font-size:22px;font-weight:700;color:${color};">${val}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:3px;">${label}</div>
+  </div>`;
+}
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
