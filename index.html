@@ -182,7 +182,7 @@ html.dark .loading-overlay{background:rgba(26,26,46,.92)}
     <div class="tab-content" id="tab-conflicts">
       <div class="stats-grid" id="confSt"></div>
       <div class="card"><div class="card-title">⚠️ تضاربات الأساتذة <span class="badge badge-red" id="tcB">0</span></div><div class="table-wrapper" style="max-height:35vh;overflow-y:auto"><table><thead><tr><th>#</th><th>الأستاذ</th><th>اليوم</th><th>الحصة</th><th>القاعة 1</th><th>المقياس 1</th><th>القاعة 2</th><th>المقياس 2</th><th>الكلية</th></tr></thead><tbody id="tcBody"></tbody></table></div></div>
-      <div class="card"><div class="card-title">👥 تضاربات الأفواج <span class="badge badge-orange" id="gcB">0</span></div><div class="table-wrapper" style="max-height:35vh;overflow-y:auto"><table><thead><tr><th>#</th><th>الفوج</th><th>اليوم</th><th>الحصة</th><th>القاعة 1</th><th>المقياس 1</th><th>القاعة 2</th><th>المقياس 2</th></tr></thead><tbody id="gcBody"></tbody></table></div></div>
+      <div class="card"><div class="card-title">👥 تضاربات الأفواج <span class="badge badge-orange" id="gcB">0</span></div><div class="table-wrapper" style="max-height:35vh;overflow-y:auto"><table><thead><tr><th>#</th><th>الفوج</th><th>التخصص</th><th>المستوى</th><th>اليوم</th><th>الحصة</th><th>القاعة 1</th><th>المقياس 1</th><th>القاعة 2</th><th>المقياس 2</th></tr></thead><tbody id="gcBody"></tbody></table></div></div>
     </div>
 
     <!-- DEPARTMENTS -->
@@ -414,7 +414,7 @@ function renderConf(){const{tc,gc}=dConf();const tot=tc.length+gc.length;
 H('confSt',[sc('⚠️',tot,'إجمالي',tot?'var(--red-bg)':'var(--green-bg)',tot?'var(--red)':'var(--green)'),sc('👨‍🏫',tc.length,'أساتذة',tc.length?'var(--red-bg)':'var(--green-bg)',tc.length?'var(--red)':'var(--green)'),sc('👥',gc.length,'أفواج',gc.length?'var(--orange-bg)':'var(--green-bg)',gc.length?'var(--orange)':'var(--green)')].join(''));
 $('tcB').textContent=tc.length;$('gcB').textContent=gc.length;
 H('tcBody',tc.length?tc.map((a,i)=>{const x=a[0],y=a[1];return`<tr class="conflict-row"><td>${i+1}</td><td><strong>${x.teacher}</strong></td><td style="color:${DC[x.day]};font-weight:700">${x.day}</td><td>${x.session}</td><td>${x.room}</td><td>${x.course}</td><td>${y.room}</td><td>${y.course}</td><td>${x.faculty}</td></tr>`}).join(''):'<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--green)">✅ لا تضاربات</td></tr>');
-H('gcBody',gc.length?gc.map((a,i)=>{const x=a[0],y=a[1];return`<tr class="conflict-row"><td>${i+1}</td><td><strong>${x.group}</strong></td><td style="color:${DC[x.day]};font-weight:700">${x.day}</td><td>${x.session}</td><td>${x.room}</td><td>${x.course}</td><td>${y.room}</td><td>${y.course}</td></tr>`}).join(''):'<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--green)">✅ لا تضاربات</td></tr>');}
+H('gcBody',gc.length?gc.map((a,i)=>{const x=a[0],y=a[1];return`<tr class="conflict-row"><td>${i+1}</td><td><strong>${x.group}</strong></td><td><span class="badge badge-purple">${x.specialty||'—'}</span></td><td><span class="badge badge-blue">${x.level||'—'}</span></td><td style="color:${DC[x.day]};font-weight:700">${x.day}</td><td>${x.session}</td><td>${x.room}</td><td>${x.course}</td><td>${y.room}</td><td>${y.course}</td></tr>`}).join(''):'<tr><td colspan="10" style="text-align:center;padding:20px;color:var(--green)">✅ لا تضاربات</td></tr>');}
 
 // ═══ Render: Departments ═══
 function renderDepts(){const fF=$('deptFac').value;const rec=R(),ss=new Set(rec.map(r=>r.teacher).filter(Boolean));
